@@ -1,6 +1,15 @@
-import json, time, threading, queue, subprocess, sys
-from flask import Flask, jsonify, request, Response, render_template_string
-import db, ingest, models
+import json
+import os
+import subprocess
+import sys
+import time
+
+from flask import Flask, Response, jsonify, render_template_string, request
+
+import db
+import models
+import paths
+from validation import valid_node_id
 
 app = Flask(__name__)
 scorer = models.Scorer()
@@ -11,48 +20,112 @@ INDEX = """
 <div id="machines">connecting...</div>
 <h2>Alarms</h2><ul id="alarms"></ul>
 <script>
+function renderMachines(machines) {
+  const root = document.getElementById("machines");
+  root.replaceChildren();
+  machines.forEach(m => {
+    const line = document.createElement("div");
+    const name = document.createElement("b");
+    name.textContent = m.node_id;
+    line.append(name, document.createTextNode(" " + m.status + " last seen: " + new Date(m.last_seen*1000).toLocaleTimeString()));
+    root.appendChild(line);
+  });
+}
+function renderAlarms(alarms) {
+  const root = document.getElementById("alarms");
+  root.replaceChildren();
+  alarms.forEach(a => {
+    const item = document.createElement("li");
+    item.textContent = a.node_id + " [" + a.state + "] " + a.reason + " - " + new Date(a.ts*1000).toLocaleString();
+    root.appendChild(item);
+  });
+}
 const es = new EventSource("/stream");
 es.onmessage = e => {
   const d = JSON.parse(e.data);
-  document.getElementById("machines").innerHTML =
-    d.machines.map(m => `<b>${m.node_id}</b> ${m.status} last seen: ${new Date(m.last_seen*1000).toLocaleTimeString()}`).join("<br>");
-  document.getElementById("alarms").innerHTML =
-    d.alarms.map(a => `<li>${a.node_id} [${a.state}] ${a.reason} — ${new Date(a.ts*1000).toLocaleString()}</li>`).join("");
+  renderMachines(d.machines);
+  renderAlarms(d.alarms);
 };
 </script>
 """
 
+
 @app.route("/")
-def index(): return render_template_string(INDEX)
+def index():
+    return render_template_string(INDEX)
+
 
 @app.route("/api/machines")
-def api_machines(): return jsonify(db.machines())
+def api_machines():
+    return jsonify(db.machines())
+
 
 @app.route("/api/telemetry")
 def api_telemetry():
-    node = request.args.get("node"); minutes = int(request.args.get("minutes", 60))
+    node = request.args.get("node")
+    if not valid_node_id(node):
+        return jsonify({"error": "invalid node"}), 400
+    try:
+        minutes = int(request.args.get("minutes", 60))
+    except ValueError:
+        return jsonify({"error": "invalid minutes"}), 400
+    if not 1 <= minutes <= 10080:
+        return jsonify({"error": "minutes out of range"}), 400
     return jsonify(db.recent(node, minutes))
 
+
 @app.route("/api/alarms")
-def api_alarms(): return jsonify(db.list_alarms(request.args.get("ack")))
+def api_alarms():
+    ack = request.args.get("ack")
+    if ack is not None:
+        if ack not in ("0", "1"):
+            return jsonify({"error": "invalid ack"}), 400
+        ack = int(ack)
+    return jsonify(db.list_alarms(ack))
+
 
 @app.route("/api/alarms/<int:aid>/ack", methods=["POST"])
 def api_ack(aid):
-    db.conn().execute("UPDATE alarms SET ack=1 WHERE id=?", (aid,)); db.conn().commit()
+    db.conn().execute("UPDATE alarms SET ack=1 WHERE id=?", (aid,))
+    db.conn().commit()
     return jsonify({"ok": True})
+
 
 @app.route("/api/models/retrain", methods=["POST"])
 def api_retrain():
-    node = (request.json or {}).get("node", "ALL")
-    r = subprocess.run([sys.executable, "ml/train_baseline.py", "--node", node],
-                       capture_output=True, text=True, cwd="..")
-    return jsonify({"ok": r.returncode == 0, "log": r.stdout[-2000:] + r.stderr[-2000:]})
+    payload = request.get_json(silent=True) or {}
+    node = payload.get("node", "ALL")
+    if node == "ALL":
+        nodes = [m["node_id"] for m in db.machines()]
+    elif valid_node_id(node):
+        nodes = [node]
+    else:
+        return jsonify({"error": "invalid node"}), 400
+    root = paths.project_root()
+    script = root / "ml" / "train_baseline.py"
+    logs = []
+    ok = True
+    for item in nodes:
+        result = subprocess.run(
+            [sys.executable, str(script), "--node", item],
+            capture_output=True,
+            text=True,
+            cwd=str(root),
+        )
+        ok = ok and result.returncode == 0
+        logs.append((result.stdout + result.stderr)[-2000:])
+    return jsonify({"ok": ok, "log": "\n".join(logs)}), 200 if ok else 500
+
 
 @app.route("/api/health")
 def api_health():
-    return jsonify({"db": True, "time": time.time(),
-                    "nodes": len(db.machines()),
-                    "models_loaded": list(scorer.aes.keys())})
+    return jsonify({
+        "db": True,
+        "time": time.time(),
+        "nodes": len(db.machines()),
+        "models_loaded": sorted(scorer.aes.keys()),
+    })
+
 
 @app.route("/stream")
 def stream():
@@ -65,8 +138,11 @@ def stream():
             time.sleep(2)
     return Response(gen(), mimetype="text/event-stream")
 
+
 if __name__ == "__main__":
-    ing = ingest.Ingestor(on_telemetry=scorer.on_telemetry)
+    import ingest
     scorer.load_autoencoders()
+    broker = os.environ.get("MQTT_BROKER", "127.0.0.1")
+    ing = ingest.Ingestor(broker=broker, on_telemetry=scorer.on_telemetry)
     ing.start()
-    app.run(host="0.0.0.0", port=5000, threaded=True)
+    app.run(host=os.environ.get("VIBRASENSE_HOST", "127.0.0.1"), port=5000, threaded=True)
