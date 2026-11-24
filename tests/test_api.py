@@ -45,6 +45,13 @@ def test_invalid_inputs_are_rejected():
     assert c.post("/api/models/retrain", json={"node": "../etc"}).status_code == 400
 
 
+def test_bearing_frequency_endpoint():
+    c = app.test_client()
+    r = c.get("/api/bearing-frequencies?rpm=1200&ball_dia_mm=8&pitch_dia_mm=40&balls=9")
+    assert r.status_code == 200
+    assert r.get_json()["bpfo"] == 72.0
+
+
 def test_dashboard_uses_text_content():
     body = app.test_client().get("/").get_data(as_text=True)
     assert "innerHTML" not in body

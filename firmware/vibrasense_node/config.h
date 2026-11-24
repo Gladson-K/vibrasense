@@ -1,9 +1,12 @@
 #pragma once
-#define FW_VERSION "2.0.0"
+#define FW_VERSION "3.0.0"
 #define NODE_NAME_MAX 32
 #define OTA_SLOT_A 0
 #define OTA_SLOT_B 1
 #define OTA_MANIFEST_MAX 512
+#define HF_SAMPLE_RATE_HZ 32000
+#define HF_FFT_SIZE 4096
+#define HF_MAX_HZ 10000
 
 #define PIN_SDA 21
 #define PIN_SCL 22
