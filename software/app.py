@@ -11,6 +11,12 @@ import models
 import paths
 from validation import valid_node_id
 
+ROOT = paths.project_root()
+if str(ROOT / "ml") not in sys.path:
+    sys.path.insert(0, str(ROOT / "ml"))
+
+from high_freq import bearing_frequencies
+
 app = Flask(__name__)
 scorer = models.Scorer()
 
@@ -125,6 +131,22 @@ def api_health():
         "nodes": len(db.machines()),
         "models_loaded": sorted(scorer.aes.keys()),
     })
+
+
+@app.route("/api/bearing-frequencies")
+def api_bearing_frequencies():
+    try:
+        rpm = float(request.args["rpm"])
+        ball_dia = float(request.args["ball_dia_mm"])
+        pitch_dia = float(request.args["pitch_dia_mm"])
+        balls = int(request.args["balls"])
+        angle = float(request.args.get("contact_angle_deg", 0))
+    except (KeyError, ValueError):
+        return jsonify({"error": "invalid bearing parameters"}), 400
+    try:
+        return jsonify(bearing_frequencies(rpm, ball_dia, pitch_dia, balls, angle))
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
 
 
 @app.route("/stream")
