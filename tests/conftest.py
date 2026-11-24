@@ -11,6 +11,7 @@ atexit.register(TMP.cleanup)
 
 os.environ["VIBRASENSE_DB"] = str(Path(TMP.name) / "vibrasense.db")
 os.environ["VIBRASENSE_MODEL_DIR"] = str(Path(TMP.name) / "ml_models")
+os.environ["VIBRASENSE_AUDIT_LOG"] = str(Path(TMP.name) / "audit.jsonl")
 
 for path in (ROOT, ROOT / "software", ROOT / "ml"):
     value = str(path)

@@ -1,0 +1,5 @@
+{
+  "dashboard_title": "VibraSense Dashboard",
+  "alert_subject": "VibraSense {state}: {node}",
+  "alert_body": "Node {node} moved to {state}. Reason: {reason}. Alarms are advisory."
+}

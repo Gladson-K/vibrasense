@@ -1,0 +1,5 @@
+{
+  "dashboard_title": "वाइब्रासेंस डैशबोर्ड",
+  "alert_subject": "वाइब्रासेंस {state}: {node}",
+  "alert_body": "नोड {node} {state} में बदल गया। कारण: {reason}। अलार्म केवल सलाहकार हैं।"
+}
