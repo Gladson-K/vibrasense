@@ -5,8 +5,6 @@ import sys
 import time
 from functools import wraps
 
-from flask import Flask, Response, jsonify, render_template_string, request
-
 import alerts
 import audit
 import auth
@@ -16,6 +14,7 @@ import i18n
 import models
 import paths
 import snmp
+from flask import Flask, Response, jsonify, render_template_string, request
 from validation import valid_node_id
 
 ROOT = paths.project_root()

@@ -1,0 +1,18 @@
+line-length = 140
+target-version = "py312"
+
+exclude = [
+  ".git",
+  ".pytest_cache",
+  "logs",
+  "ml_models",
+]
+
+[lint]
+select = ["E", "F", "I"]
+
+[lint.per-file-ignores]
+"ml/backtest.py" = ["E402"]
+"ml/train_baseline.py" = ["E402"]
+"scripts/ota_sign.py" = ["E402"]
+"software/app.py" = ["E402"]

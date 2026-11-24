@@ -1,12 +1,11 @@
-from collections import defaultdict, deque
 import json
 import os
 import time
-
-import numpy as np
+from collections import defaultdict, deque
 
 import db
 import model_io
+import numpy as np
 import paths
 from validation import valid_node_id
 

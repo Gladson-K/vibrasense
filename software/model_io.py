@@ -3,7 +3,6 @@ import hmac
 import json
 from pathlib import Path
 
-
 SCHEMA = "vibrasense-mlp-v1"
 
 

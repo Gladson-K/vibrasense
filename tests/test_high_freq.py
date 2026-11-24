@@ -1,6 +1,5 @@
 import numpy as np
 import pytest
-
 from high_freq import (
     bearing_frequencies,
     detect_defect_frequency,

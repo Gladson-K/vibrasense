@@ -9,7 +9,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(ROOT, "software"))
 sys.path.insert(0, os.path.join(ROOT, "ml"))
 
-from models import AlarmFSM, Baseline, FEATURES
+from models import FEATURES, AlarmFSM, Baseline
 from paths import database_path
 
 

@@ -1,7 +1,11 @@
-import os, sys
+import os
+import sys
+
 import numpy as np
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "ml"))
 from features import band_energies
+
 
 def test_tone_in_band2():
     t = np.arange(1000) / 1000.0

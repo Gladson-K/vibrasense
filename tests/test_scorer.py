@@ -1,6 +1,5 @@
-import numpy as np
-
 import model_io
+import numpy as np
 from models import SafeMLP, Scorer
 
 

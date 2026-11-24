@@ -1,11 +1,16 @@
 # Generate a synthetic demo dataset: 3 days healthy + outer-race fault onset,
 # inserted directly into vibrasense.db so dashboard/ML/backtest work out of the box.
-import sys, os, time, sqlite3
+import os
+import sys
+import time
+
 import numpy as np
+
 sys.path.insert(0, "../../ml")
 sys.path.insert(0, "..")
-from features import window_features, band_energies, FEATURES
 import db
+from features import band_energies, window_features
+
 
 def synth_window(rng, fault_level, rpm=1200):
     t = np.arange(1000) / 1000.0

@@ -1,7 +1,11 @@
-import os, sys, math
+import os
+import sys
+
 import numpy as np
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "ml"))
-from features import window_features, band_energies
+from features import window_features
+
 
 def test_rms_of_sine():
     t = np.arange(1000) / 1000.0

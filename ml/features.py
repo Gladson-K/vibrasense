@@ -22,7 +22,10 @@ def band_energies(mag_g, fs=1000.0, n=256):
         im = np.sum(seg * np.sin(-2*np.pi*k*np.arange(n)/n))
         p = (re*re + im*im) / (n*n)
         hz = k * fs / n
-        if 10 <= hz < 100: b[0] += p
-        elif hz < 300: b[1] += p
-        elif hz < 500: b[2] += p
+        if 10 <= hz < 100:
+            b[0] += p
+        elif hz < 300:
+            b[1] += p
+        elif hz < 500:
+            b[2] += p
     return b

@@ -1,7 +1,7 @@
 import i18n
 from alerts import AlertRouter, MemoryTransport
-from auth import allowed, role_from_headers
 from audit import append, read_all
+from auth import allowed, role_from_headers
 from fleet import hierarchy, parse_csv, qr_payload
 from snmp import health_trap
 

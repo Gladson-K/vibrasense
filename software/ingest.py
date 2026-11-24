@@ -3,9 +3,8 @@ import os
 import threading
 import time
 
-import paho.mqtt.client as mqtt
-
 import db
+import paho.mqtt.client as mqtt
 from validation import valid_node_id
 
 
