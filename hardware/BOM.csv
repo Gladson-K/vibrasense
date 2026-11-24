@@ -1,0 +1,12 @@
+ref,qty,part,spec,est_unit_usd,source,alt
+U1,1,ESP32 dev board,ESP32-WROOM-32 38-pin,4.50,LCSC,Ai-Thinker NodeMCU-32S
+U2,1,MPU6050 module,GY-521 breakout,2.20,LCSC,LSM6DS3 breakout
+U3,1,DS18B20,waterproof probe 1m,1.80,LCSC,DS18B20 TO-92 + cable
+T1,1,SCT-013-030,30A/1V current clamp,5.00,YHDC via reseller,Magnelab SCT-075
+A1,1,Analog front end parts,"burden 33R, 100k x2, 1k6, 100nF, TLV6001 op-amp, TVS",2.50,LCSC,-
+PSU,1,5V 2A adapter,certified (UL/CE/GS),3.00,local,certified equivalent
+PCB,1,Perfboard 7x9cm,+ headers/wires,1.20,local,-
+MECH,1,Enclosure kit,100x68x40 IP54 box + 2x N52 magnets + Sorbothane pad,6.00,Hammond/local print,-
+MISC,1,Passives/LED/buttons/terminals,assorted,1.80,LCSC,-
+,,TOTAL (BOM target <= 35),,,28.00,
+KIT,1,Kit retail incl. labor/packaging/docs,,,69.00,target price

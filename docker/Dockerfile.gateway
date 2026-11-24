@@ -1,0 +1,23 @@
+FROM python:3.11-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/app:/app/software:/app/ml \
+    VIBRASENSE_DB=/tmp/vibrasense-test.db \
+    VIBRASENSE_HOST=0.0.0.0 \
+    MQTT_BROKER=mosquitto
+
+WORKDIR /app
+
+COPY software/requirements.txt requirements.txt
+COPY requirements-dev.txt requirements-dev.txt
+RUN pip install --no-cache-dir -r requirements.txt -r requirements-dev.txt
+
+RUN useradd --create-home --shell /bin/bash app
+COPY --chown=app:app software/ software/
+COPY --chown=app:app ml/ ml/
+COPY --chown=app:app tests/ tests/
+COPY --chown=app:app pytest.ini pytest.ini
+
+USER app
+CMD ["python", "-m", "pytest", "-q"]
