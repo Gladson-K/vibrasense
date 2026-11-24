@@ -56,3 +56,29 @@ def test_dashboard_uses_text_content():
     body = app.test_client().get("/").get_data(as_text=True)
     assert "innerHTML" not in body
     assert "textContent" in body
+
+
+def test_i18n_endpoint():
+    r = app.test_client().get("/api/i18n/es")
+    assert r.status_code == 200
+    assert r.get_json()["dashboard_title"] == "Panel de VibraSense"
+
+
+def test_fleet_import_endpoint():
+    text = "node_id,name,site,machine_class\napi-node,Press 1,Plant A,Press\n"
+    r = app.test_client().post("/api/fleet/import", json={"csv": text})
+    assert r.status_code == 200
+    assert r.get_json()["imported"] == 1
+    assert r.get_json()["qr"]["api-node"] == "vs://node/api-node"
+
+
+def test_snmp_trap_endpoint():
+    r = app.test_client().get("/api/snmp/trap?node=api-node&state=ALARM")
+    assert r.status_code == 200
+    assert r.get_json()["severity_code"] == 2
+
+
+def test_rbac_denial(monkeypatch):
+    monkeypatch.setenv("VIBRASENSE_AUTH_ENABLED", "1")
+    r = app.test_client().post("/api/alarms/1/ack", headers={"X-Role": "viewer"})
+    assert r.status_code == 403

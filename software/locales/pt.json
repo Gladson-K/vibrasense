@@ -1,0 +1,5 @@
+{
+  "dashboard_title": "Painel VibraSense",
+  "alert_subject": "VibraSense {state}: {node}",
+  "alert_body": "O nó {node} passou para {state}. Motivo: {reason}. Os alarmas são consultivos."
+}
