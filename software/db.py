@@ -1,13 +1,23 @@
-import sqlite3, time, threading
+import os
+import sqlite3
+import threading
+import time
+from pathlib import Path
+
+from paths import database_path
 
 _local = threading.local()
 
+
 def conn():
     if not hasattr(_local, "c"):
-        _local.c = sqlite3.connect("vibrasense.db", check_same_thread=False)
+        path = database_path()
+        path.parent.mkdir(parents=True, exist_ok=True)
+        _local.c = sqlite3.connect(str(path), check_same_thread=False)
         _local.c.row_factory = sqlite3.Row
         migrate(_local.c)
     return _local.c
+
 
 def migrate(c):
     c.executescript("""
@@ -28,12 +38,15 @@ def migrate(c):
     """)
     c.commit()
 
+
 def upsert_node(node_id, ts=None):
-    c = conn(); ts = ts or time.time()
+    c = conn()
+    ts = ts or time.time()
     c.execute("INSERT OR IGNORE INTO nodes(node_id,first_seen,last_seen) VALUES(?,?,?)",
               (node_id, ts, ts))
     c.execute("UPDATE nodes SET last_seen=? WHERE node_id=?", (ts, node_id))
     c.commit()
+
 
 def insert_telemetry(node_id, ts, d):
     conn().execute(
@@ -44,20 +57,24 @@ def insert_telemetry(node_id, ts, d):
        d.get("flags", 0)))
     conn().commit()
 
+
 def recent(node_id, minutes=60):
     return [dict(r) for r in conn().execute(
       "SELECT * FROM telemetry WHERE node_id=? AND ts>? ORDER BY ts",
-      (node_id, time.time() - minutes*60)).fetchall()]
+      (node_id, time.time() - minutes * 60)).fetchall()]
+
 
 def add_alarm(node_id, state, reason, snapshot):
     conn().execute("INSERT INTO alarms(node_id,ts,state,reason,snapshot) VALUES(?,?,?,?,?)",
                    (node_id, time.time(), state, reason, snapshot))
     conn().commit()
 
+
 def list_alarms(ack=None):
     q = "SELECT * FROM alarms" + (" WHERE ack=?" if ack is not None else "") + " ORDER BY ts DESC LIMIT 500"
     rows = conn().execute(q, (ack,) if ack is not None else ()).fetchall()
     return [dict(r) for r in rows]
+
 
 def machines():
     return [dict(r) for r in conn().execute("SELECT * FROM nodes").fetchall()]
